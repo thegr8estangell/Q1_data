@@ -55,12 +55,18 @@ export default function App() {
   // Flights for selected podcasts
   const selFlights = useMemo(() => FLIGHTS.filter(([pod])=>sel.includes(pod)), [sel]);
 
-  // Deduplicated boundary lines
+  // Boundary lines with vertical stagger so overlapping labels stay visible
   const boundaries = useMemo(() => {
-    const seen = new Set(), result = [];
+    const seen = new Set(), result = [], dateCounts = {};
     selFlights.forEach(([pod,type,s,e]) => {
-      [`${s}-${type}-start`,`${e}-${type}-end`].forEach((key,ki) => {
-        if (!seen.has(key)) { seen.add(key); result.push({idx: ki===0?s:e, type, kind: ki===0?"start":"end"}); }
+      [[s,"start"],[e,"end"]].forEach(([idx,kind]) => {
+        const key = `${idx}-${type}-${kind}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          const offset = (dateCounts[idx] || 0) * 14;
+          dateCounts[idx] = (dateCounts[idx] || 0) + 1;
+          result.push({idx, type, kind, offset});
+        }
       });
     });
     return result;
@@ -209,21 +215,21 @@ export default function App() {
           </div>
 
           <ResponsiveContainer width="100%" height={400}>
-            <LineChart data={chartData} margin={{top:4,right:12,bottom:4,left:4}}>
+            <LineChart data={chartData} margin={{top:40,right:12,bottom:4,left:4}}>
               <CartesianGrid strokeDasharray="3 3" stroke="#111122"/>
               <XAxis dataKey="date" tick={{fontFamily:"JetBrains Mono",fontSize:10,fill:"#444"}} interval={13} axisLine={{stroke:"#1a1a2e"}} tickLine={false}/>
               <YAxis tick={{fontFamily:"JetBrains Mono",fontSize:10,fill:"#444"}} axisLine={false} tickLine={false} tickFormatter={fmt} width={48}/>
               <Tooltip content={<TTip sel={sel}/>}/>
 
-              {/* Promo start lines (solid ▲) */}
+              {/* Promo start lines (solid ▲) — staggered labels */}
               {boundaries.filter(b=>b.kind==="start").map((b,i)=>(
                 <ReferenceLine key={`s${i}`} x={DATES[b.idx]} stroke={FC[b.type]||"#888"} strokeWidth={1.5}
-                  label={{value:"▲",position:"top",fill:FC[b.type]||"#888",fontSize:9,fontFamily:"JetBrains Mono"}}/>
+                  label={{value:"▲",position:"top",fill:FC[b.type]||"#888",fontSize:9,fontFamily:"JetBrains Mono",dy:-(b.offset||0)}}/>
               ))}
-              {/* Promo end lines (dashed ▼) */}
+              {/* Promo end lines (dashed ▼) — staggered labels */}
               {boundaries.filter(b=>b.kind==="end").map((b,i)=>(
                 <ReferenceLine key={`e${i}`} x={DATES[b.idx]} stroke={FC[b.type]||"#888"} strokeWidth={1.5} strokeDasharray="4 3"
-                  label={{value:"▼",position:"top",fill:FC[b.type]||"#888",fontSize:9,fontFamily:"JetBrains Mono"}}/>
+                  label={{value:"▼",position:"top",fill:FC[b.type]||"#888",fontSize:9,fontFamily:"JetBrains Mono",dy:-(b.offset||0)}}/>
               ))}
 
               {sel.map((pod,i)=>(
