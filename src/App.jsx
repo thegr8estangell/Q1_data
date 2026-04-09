@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Legend } from "recharts";
+import { LineChart, AreaChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Legend, ReferenceLine as RL } from "recharts";
 
 // ── DATA ─────────────────────────────────────────────────────────────────────
 const DATES=["01/01","01/02","01/03","01/04","01/05","01/06","01/07","01/08","01/09","01/10","01/11","01/12","01/13","01/14","01/15","01/16","01/17","01/18","01/19","01/20","01/21","01/22","01/23","01/24","01/25","01/26","01/27","01/28","01/29","01/30","01/31","02/01","02/02","02/03","02/04","02/05","02/06","02/07","02/08","02/09","02/10","02/11","02/12","02/13","02/14","02/15","02/16","02/17","02/18","02/19","02/20","02/21","02/22","02/23","02/24","02/25","02/26","02/27","02/28","03/01","03/02","03/03","03/04","03/05","03/06","03/07","03/08","03/09","03/10","03/11","03/12","03/13","03/14","03/15","03/16","03/17","03/18","03/19","03/20","03/21","03/22","03/23","03/24","03/25","03/26","03/27","03/28","03/29","03/30","03/31"];
@@ -83,6 +83,43 @@ export default function App() {
 
   const flightTypes = [...new Set(selFlights.map(f=>f[1]))];
 
+  // Promo lift calc — only when single podcast selected
+  const liftData = useMemo(() => {
+    if (sel.length !== 1) return null;
+    const pod = sel[0];
+    const podFlights = FLIGHTS.filter(f => f[0] === pod);
+    if (!podFlights.length) return null;
+
+    // Launch takes precedent, otherwise earliest start
+    const launch = podFlights.find(f => f[1] === "Launch");
+    const primary = launch || podFlights.reduce((a,b) => a[2]<b[2]?a:b);
+    const [,flightType, startIdx] = primary;
+
+    const arr = SERIES[pod] || [];
+    const preWindow = arr.slice(Math.max(0, startIdx - 7), startIdx);
+    const postWindow = arr.slice(startIdx, startIdx + 15);
+    const isNewShow = preWindow.every(v => v === 0);
+    const preAvg = isNewShow ? null : preWindow.reduce((a,b)=>a+b,0) / (preWindow.length||1);
+
+    const days = postWindow.map((v, i) => {
+      const day = i + 1;
+      const date = DATES[Math.min(startIdx + i, 89)];
+      if (isNewShow) {
+        const base = postWindow[0] || 1;
+        const pct = base > 0 ? ((v - base) / base) * 100 : 0;
+        return { day, date, downloads: v, pct: Math.round(pct), isNewShow: true };
+      }
+      const pct = preAvg > 0 ? ((v - preAvg) / preAvg) * 100 : 0;
+      return { day, date, downloads: v, pct: Math.round(pct), isNewShow: false };
+    });
+
+    const peakDay = days.reduce((a,b) => b.pct > a.pct ? b : a, days[0]);
+    const avgLift = Math.round(days.reduce((a,b)=>a+b.pct,0)/days.length);
+
+    return { days, preAvg, isNewShow, flightType, startDate: DATES[startIdx], peakDay, avgLift };
+  }, [sel, selFlights]);
+
+
   return (
     <>
       <style>{`
@@ -145,7 +182,7 @@ export default function App() {
         {/* Header */}
         <div className="hdr">
           <div>
-            <h1>Q1 2026 <span>Podcast</span> Flight and Downloads Relationship Analytics</h1>
+            <h1>TAP <span>Podcast</span> Analytics</h1>
             <div className="sub">Q1 2026 · Downloads × Ad Flight Overlay</div>
           </div>
           <div className="badge">Jan – Mar 2026 &nbsp;·&nbsp; {PODCASTS.length} Shows</div>
@@ -242,6 +279,54 @@ export default function App() {
           </ResponsiveContainer>
           <div className="hint">▲ solid = promo start &nbsp;·&nbsp; ▼ dashed = promo end &nbsp;·&nbsp; hover for details</div>
         </div>
+
+        {/* Promo Lift Chart */}
+        {liftData && (
+          <div className="ftable" style={{marginTop:16}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12,marginBottom:16}}>
+              <div>
+                <div className="ftitle" style={{marginBottom:4}}>
+                  {liftData.isNewShow ? "New Show Launch — Promo Surge" : "Estimated Promo Lift"} &nbsp;·&nbsp; {liftData.flightType} starting {liftData.startDate}
+                </div>
+                <div style={{fontFamily:"JetBrains Mono",fontSize:".6rem",color:"#555"}}>
+                  {liftData.isNewShow
+                    ? "No pre-promo baseline — % change shown relative to launch day"
+                    : `Baseline: ${Math.round(liftData.preAvg).toLocaleString()} avg downloads/day (7 days pre-flight)`}
+                </div>
+              </div>
+              <div style={{display:"flex",gap:16}}>
+                <div style={{textAlign:"right"}}>
+                  <div style={{fontFamily:"JetBrains Mono",fontSize:"1.4rem",fontWeight:700,color: liftData.avgLift>=0?"#00FF9F":"#FF4D4D"}}>{liftData.avgLift>0?"+":""}{liftData.avgLift}%</div>
+                  <div style={{fontFamily:"JetBrains Mono",fontSize:".58rem",color:"#555"}}>avg lift over 14d</div>
+                </div>
+                <div style={{textAlign:"right"}}>
+                  <div style={{fontFamily:"JetBrains Mono",fontSize:"1.4rem",fontWeight:700,color:"#FFD700"}}>{liftData.peakDay.pct>0?"+":""}{liftData.peakDay.pct}%</div>
+                  <div style={{fontFamily:"JetBrains Mono",fontSize:".58rem",color:"#555"}}>peak on day {liftData.peakDay.day}</div>
+                </div>
+              </div>
+            </div>
+            <ResponsiveContainer width="100%" height={160}>
+              <AreaChart data={liftData.days} margin={{top:8,right:12,bottom:4,left:8}}>
+                <defs>
+                  <linearGradient id="liftGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#00FF9F" stopOpacity={0.25}/>
+                    <stop offset="95%" stopColor="#00FF9F" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="liftGradNeg" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#FF4D4D" stopOpacity={0.15}/>
+                    <stop offset="95%" stopColor="#FF4D4D" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#111122"/>
+                <XAxis dataKey="day" tick={{fontFamily:"JetBrains Mono",fontSize:10,fill:"#444"}} tickFormatter={d=>`Day ${d}`} axisLine={{stroke:"#1a1a2e"}} tickLine={false} interval={1}/>
+                <YAxis tick={{fontFamily:"JetBrains Mono",fontSize:10,fill:"#444"}} axisLine={false} tickLine={false} tickFormatter={v=>`${v>0?"+":""}${v}%`} width={52}/>
+                <Tooltip formatter={(v)=>[`${v>0?"+":""}${v}%`,"Lift"]} labelFormatter={l=>`Day ${l} (${liftData.days[l-1]?.date||""})`} contentStyle={{background:"#0c0c14",border:"1px solid #252535",borderRadius:8,fontFamily:"JetBrains Mono",fontSize:11}}/>
+                <ReferenceLine y={0} stroke="#333" strokeWidth={1}/>
+                <Area type="monotone" dataKey="pct" stroke="#00FF9F" strokeWidth={2} fill="url(#liftGrad)" dot={{r:3,fill:"#00FF9F",stroke:"#08080f",strokeWidth:1.5}} activeDot={{r:5}}/>
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        )}
 
         {/* Flights Table */}
         {selFlights.length>0 && (
