@@ -167,11 +167,11 @@ export default function App() {
         .ldot{width:7px;height:7px;border-radius:2px;flex-shrink:0}
         .hint{font-family:'Calibri',sans-serif;font-size:.65rem;color:#bbb;margin-top:10px}
         /* Flights table */
-        .ftable{background:#fff;border:1px solid #e5e5e5;border-radius:6px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+        .ftable{background:#fff;border:1px solid #e5e5e5;border-radius:6px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.05);text-align:left}
         .ftitle{font-family:'Calibri',sans-serif;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:#999;font-weight:600;margin-bottom:14px}
         table{width:100%;border-collapse:collapse}
         th{font-family:'Calibri',sans-serif;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:#999;text-align:left;padding:8px 10px;border-bottom:2px solid #f0f0f0}
-        td{font-family:'Calibri',sans-serif;font-size:.82rem;padding:9px 10px;border-bottom:1px solid #f5f5f5;color:#333}
+        td{font-family:'Calibri',sans-serif;font-size:.82rem;padding:9px 10px;border-bottom:1px solid #f5f5f5;color:#333;text-align:left}
         tr:last-child td{border-bottom:none}
         tr:hover td{background:#fafafa}
         .tbadge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:.68rem;border:1px solid;font-weight:600}
@@ -295,11 +295,11 @@ export default function App() {
                 </div>
               </div>
               <div style={{display:"flex",gap:16}}>
-                <div style={{textAlign:"left"}}>
+                <div style={{textAlign:"right"}}>
                   <div style={{fontFamily:"Calibri",fontSize:"1.6rem",fontWeight:700,color: liftData.avgLift>=0?"#1a7a3c":"#C6002B"}}>{liftData.avgLift>0?"+":""}{liftData.avgLift}%</div>
                   <div style={{fontFamily:"Calibri",fontSize:".7rem",color:"#555"}}>avg lift over 14d</div>
                 </div>
-                <div style={{textAlign:"left"}}>
+                <div style={{textAlign:"right"}}>
                   <div style={{fontFamily:"Calibri",fontSize:"1.6rem",fontWeight:700,color:"#16a34a"}}>{liftData.peakDay.pct>0?"+":""}{liftData.peakDay.pct}%</div>
                   <div style={{fontFamily:"Calibri",fontSize:".7rem",color:"#555"}}>peak on day {liftData.peakDay.day}</div>
                 </div>
