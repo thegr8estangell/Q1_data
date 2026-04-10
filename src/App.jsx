@@ -123,7 +123,7 @@ export default function App() {
   return (
     <>
       <style>{`
-        *{box-sizing:border-box;margin:0;padding:0}
+        *{box-sizing:border-box;margin:0;padding:0} html,body{border:0;outline:0;margin:0;padding:0} .app{outline:none}
         body{background:#f5f5f5;color:#1a1a1a;font-family:'Calibri',sans-serif;min-height:100vh}
         .app{max-width:1400px;margin:0 auto;padding:28px 32px 80px}
         /* Header */
@@ -272,7 +272,7 @@ export default function App() {
               {sel.map((pod,i)=>(
                 <Line key={pod} type="monotone" dataKey={pod} name={pod}
                   stroke={LC[i%LC.length]} strokeWidth={sel.length===1?2:1.5}
-                  dot={false} activeDot={{r:4,stroke:"#08080f",strokeWidth:2}}/>
+                  dot={false} activeDot={{r:4,stroke:"#fff",strokeWidth:2}}/>
               ))}
               {sel.length>1 && <Legend wrapperStyle={{fontFamily:"Calibri",fontSize:11,color:"#888",paddingTop:10}}/>}
             </LineChart>
