@@ -182,7 +182,7 @@ export default function App() {
         {/* Header */}
         <div className="hdr">
           <div>
-            <h1>TAP <span>Podcast</span> Analytics</h1>
+            <h1>Q1 2026 <span>Podcast Download</span> Flight Relationship Data</h1>
             <div className="sub">Q1 2026 · Downloads × Ad Flight Overlay</div>
           </div>
           <div className="badge">Jan – Mar 2026 &nbsp;·&nbsp; {PODCASTS.length} Shows</div>
