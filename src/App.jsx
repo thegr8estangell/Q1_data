@@ -295,11 +295,11 @@ export default function App() {
                 </div>
               </div>
               <div style={{display:"flex",gap:16}}>
-                <div style={{textAlign:"right"}}>
+                <div style={{textAlign:"left"}}>
                   <div style={{fontFamily:"Calibri",fontSize:"1.6rem",fontWeight:700,color: liftData.avgLift>=0?"#1a7a3c":"#C6002B"}}>{liftData.avgLift>0?"+":""}{liftData.avgLift}%</div>
                   <div style={{fontFamily:"Calibri",fontSize:".7rem",color:"#555"}}>avg lift over 14d</div>
                 </div>
-                <div style={{textAlign:"right"}}>
+                <div style={{textAlign:"left"}}>
                   <div style={{fontFamily:"Calibri",fontSize:"1.6rem",fontWeight:700,color:"#16a34a"}}>{liftData.peakDay.pct>0?"+":""}{liftData.peakDay.pct}%</div>
                   <div style={{fontFamily:"Calibri",fontSize:".7rem",color:"#555"}}>peak on day {liftData.peakDay.day}</div>
                 </div>
