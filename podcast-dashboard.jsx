@@ -347,7 +347,7 @@ export default function App() {
                       {sel.length>1&&<td style={{color:"#888",maxWidth:200,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{pod}</td>}
                       <td><span className="tbadge" style={{color:col,borderColor:col+"44",background:col+"11"}}>{type}</span></td>
                       <td style={{color:"#ccc"}}>{DATES[si]}</td>
-                      <td style={{color:"#ccc"}}>{realEnd||DATES[ei]}</td>
+                      <td style={{color:"#ccc"}}>{realEnd?realEnd.slice(0,5):DATES[ei]}</td>
                       <td style={{color:"#555"}}>{ei-si+1}d</td>
                     </tr>
                   );
